@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card shadow-lg border-0 rounded-4">
+      <div class="card-body p-4 p-md-5">
+        <h2 class="card-title text-center mb-4 fw-bold text-success">Book Waste Pickup</h2>
+        
+        <form method="POST">
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="name" name="name" placeholder="Full Name" required>
+            <label for="name">Full Name</label>
+          </div>
+
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="address" name="address" placeholder="Address" required>
+            <label for="address">Address</label>
+          </div>
+
+          <div class="form-floating mb-3">
+            <select class="form-select" id="waste_type" name="waste_type" required>
+              <option value="" selected disabled>Open this select menu</option>
+              <option value="Plastic">Plastic</option>
+              <option value="Organic">Organic / Food</option>
+              <option value="Metal">Metal</option>
+              <option value="Paper">Paper</option>
+              <option value="Mixed">Mixed Waste</option>
+            </select>
+            <label for="waste_type">Waste Type</label>
+          </div>
+
+          <div class="form-floating mb-3">
+            <select class="form-select" id="establishment" name="establishment" required>
+              <option value="" selected disabled>Open this select menu</option>
+              <option value="Household">Household</option>
+              <option value="Business">Business</option>
+            </select>
+            <label for="establishment">Establishment Type</label>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <div class="form-floating">
+                <input type="date" class="form-control" id="pickup_date" name="pickup_date" required>
+                <label for="pickup_date">Pickup Date</label>
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <div class="form-floating">
+                <input type="time" class="form-control" id="pickup_time" name="pickup_time" required>
+                <label for="pickup_time">Pickup Time</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-success btn-lg fw-bold">Book Pickup Now</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
