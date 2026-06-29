@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -9,17 +9,19 @@
     nav { background: #222; padding: 1rem; }
     nav a { color: #fff; margin-right: 15px; text-decoration: none; font-weight: bold; }
     nav a:hover { text-decoration: underline; }
-    .container { max-width: 600px; margin: 40px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .container { max-width: 900px; margin: 40px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     input, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 5px; border: 1px solid #ccc; }
     button { background: #222; color: #fff; border: none; cursor: pointer; }
     button:hover { background: #444; }
-    .flash { background: #ffdddd; color: #a00; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+    .flash { padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+    .flash.danger { background: #ffdddd; color: #a00; }
+    .flash.success { background: #ddffdd; color: #070; }
   </style>
 </head>
 <body>
   <nav>
-    <a href="{{ url_for('home') }}">TETRA</a>
-    {% if session.get('user') %}
+    <a href="{{ url_for('index') }}">TETRA</a>
+    {% if session.get('user_id') %}
       <a href="{{ url_for('dashboard') }}">Dashboard</a>
       <a href="{{ url_for('logout') }}">Logout</a>
     {% else %}
@@ -29,10 +31,10 @@
   </nav>
 
   <div class="container">
-    {% with messages = get_flashed_messages() %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        {% for msg in messages %}
-          <div class="flash">{{ msg }}</div>
+        {% for category, msg in messages %}
+          <div class="flash {{ category }}">{{ msg }}</div>
         {% endfor %}
       {% endif %}
     {% endwith %}
