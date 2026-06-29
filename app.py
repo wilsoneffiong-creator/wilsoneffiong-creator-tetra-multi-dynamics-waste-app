@@ -30,6 +30,10 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+@app.before_first_request
+def create_tables():
+    db.create_all()
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -70,14 +74,7 @@ def dashboard():
         session.clear()
         return redirect(url_for('login'))
     
-    # FIX V4.4: Hardcoded INT values only. No math.
-    stats = {
-        'total': 0,
-        'medical': 0, 
-        'household': 0,
-        'e_waste': 0,
-        'others': 0
-    }
+    stats = {'total': 0, 'medical': 0, 'household': 0, 'e_waste': 0, 'others': 0}
     return render_template('dashboard.html', user=user, stats=stats)
 
 @app.route('/admin')
@@ -92,6 +89,4 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
