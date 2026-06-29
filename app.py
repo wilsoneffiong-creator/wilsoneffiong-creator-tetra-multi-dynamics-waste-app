@@ -70,7 +70,7 @@ def dashboard():
         session.clear()
         return redirect(url_for('login'))
     
-    # FIX V4.3: Send stats so template stops crashing
+    # FIX V4.4: Hardcoded INT values only. No math.
     stats = {
         'total': 0,
         'medical': 0, 
@@ -78,7 +78,7 @@ def dashboard():
         'e_waste': 0,
         'others': 0
     }
-    return render_template('dashboard.html', user=user, stats=stats) # Pass both
+    return render_template('dashboard.html', user=user, stats=stats)
 
 @app.route('/admin')
 @login_required
