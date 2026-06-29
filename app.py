@@ -1,80 +1,84 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-import sqlite3
+import json, os
 from werkzeug.security import generate_password_hash, check_password_hash
-from functools import wraps
-import os
 
 app = Flask(__name__)
-app.secret_key = 'tetra_secret_key_change_this_later'
-DATABASE = 'tetra.db'
+app.secret_key = 'tetra-secret-key-change-this' # CHANGE THIS LATER
 
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
+DB_FILE = 'users.json'
 
+# L9C RULE: Auto create DB if Render doesn't have it
 def init_db():
-    conn = sqlite3.connect(DATABASE)
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS users
-                 (id INTEGER PRIMARY KEY, email TEXT UNIQUE, password TEXT)''') # Changed to email
-    conn.commit()
-    conn.close()
+    if not os.path.exists(DB_FILE):
+        with open(DB_FILE, 'w') as f:
+            json.dump([], f) # Create empty user list
 
+def load_users():
+    with open(DB_FILE, 'r') as f:
+        return json.load(f)
+
+def save_users(users):
+    with open(DB_FILE, 'w') as f:
+        json.dump(users, f, indent=2)
+
+init_db() # Run on startup
+
+# L9C RULE: Fix BuildError - Add missing routes for base.html
 @app.route('/')
 def home():
-    return redirect(url_for('login'))
+    return render_template('dashboard.html') # Or "TETRA Home"
 
+@app.route('/book')
+def book():
+    return "Book Page - Coming Soon", 200
+
+# L9C RULE: Register Route
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        email = request.form['email'] # FIX: email not username
+        email = request.form['email']
         password = request.form['password']
-        hashed_pw = generate_password_hash(password)
-        try:
-            conn = sqlite3.connect(DATABASE)
-            c = conn.cursor()
-            c.execute("INSERT INTO users (email, password) VALUES (?,?)", (email, hashed_pw))
-            conn.commit()
-            conn.close()
-            flash('Registration successful! Please login.')
-            return redirect(url_for('login'))
-        except sqlite3.IntegrityError:
-            flash('Email already exists.')
+        users = load_users()
+        
+        if any(u['email'] == email for u in users):
+            flash('Email already exists')
+            return redirect(url_for('register'))
+            
+        users.append({
+            'email': email, 
+            'password': generate_password_hash(password)
+        })
+        save_users(users)
+        flash('Account created. Please login.')
+        return redirect(url_for('login'))
+        
     return render_template('register.html')
 
+# L9C RULE: Login Route  
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email'] # FIX: email not username
+        email = request.form['email']
         password = request.form['password']
-        conn = sqlite3.connect(DATABASE)
-        c = conn.cursor()
-        c.execute("SELECT * FROM users WHERE email =?", (email,)) # FIX: email
-        user = c.fetchone()
-        conn.close()
-        if user and check_password_hash(user[2], password):
-            session['user_id'] = user[0]
-            session['email'] = user[1] # FIX: email
+        users = load_users()
+        
+        user = next((u for u in users if u['email'] == email), None)
+        if user and check_password_hash(user['password'], password):
+            session['user'] = email
             return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid email or password.')
+        flash('Invalid email or password')
     return render_template('login.html')
 
 @app.route('/dashboard')
-@login_required
 def dashboard():
-    return render_template('dashboard.html', email=session['email']) # FIX: email
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return render_template('dashboard.html', user=session['user'])
 
 @app.route('/logout')
 def logout():
-    session.clear()
-    flash('You have been logged out.')
+    session.pop('user', None)
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True)
