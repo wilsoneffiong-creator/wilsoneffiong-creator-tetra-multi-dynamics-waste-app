@@ -1,84 +1,82 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-import json, os
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = 'tetra-secret-key-change-this' # CHANGE THIS LATER
+app.config['SECRET_KEY'] = 'tetra-secret-key-v4' 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-DB_FILE = 'users.json'
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
 
-# L9C RULE: Auto create DB if Render doesn't have it
-def init_db():
-    if not os.path.exists(DB_FILE):
-        with open(DB_FILE, 'w') as f:
-            json.dump([], f) # Create empty user list
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please login first')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
-def load_users():
-    with open(DB_FILE, 'r') as f:
-        return json.load(f)
-
-def save_users(users):
-    with open(DB_FILE, 'w') as f:
-        json.dump(users, f, indent=2)
-
-init_db() # Run on startup
-
-# L9C RULE: Fix BuildError - Add missing routes for base.html
 @app.route('/')
 def home():
-    return render_template('dashboard.html') # Or "TETRA Home"
+    return redirect(url_for('register'))
 
-@app.route('/book')
-def book():
-    return "Book Page - Coming Soon", 200
-
-# L9C RULE: Register Route
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        users = load_users()
-        
-        if any(u['email'] == email for u in users):
+        if User.query.filter_by(email=email).first():
             flash('Email already exists')
             return redirect(url_for('register'))
-            
-        users.append({
-            'email': email, 
-            'password': generate_password_hash(password)
-        })
-        save_users(users)
-        flash('Account created. Please login.')
+        user = User(email=email, password_hash=generate_password_hash(password))
+        db.session.add(user)
+        db.session.commit()
+        flash('Account created Please login')
         return redirect(url_for('login'))
-        
     return render_template('register.html')
 
-# L9C RULE: Login Route  
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        users = load_users()
-        
-        user = next((u for u in users if u['email'] == email), None)
-        if user and check_password_hash(user['password'], password):
-            session['user'] = email
+        user = User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.password_hash, password):
+            session['user_id'] = user.id
             return redirect(url_for('dashboard'))
         flash('Invalid email or password')
     return render_template('login.html')
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
-    if 'user' not in session:
+    user = User.query.get(session['user_id']) # FIX V4.2: Get user
+    if not user:
+        session.clear()
         return redirect(url_for('login'))
-    return render_template('dashboard.html', user=session['user'])
+    return render_template('dashboard.html', user=user) # FIX V4.2: Pass user
+
+@app.route('/admin')
+@login_required
+def admin():
+    users = User.query.all()
+    return f"<h1>Admin</h1><p>Users in DB: {len(users)}</p><a href='/dashboard'>Back</a>"
 
 @app.route('/logout')
 def logout():
-    session.pop('user', None)
+    session.clear()
     return redirect(url_for('login'))
+
+with app.app_context():
+    db.create_all()
 
 if __name__ == '__main__':
     app.run(debug=True)
