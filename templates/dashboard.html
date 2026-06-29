@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<h2 class="mb-4">Welcome, {{ user }}</h2>
+<h2 class="mb-4">Welcome, {{ user.email }}</h2>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
