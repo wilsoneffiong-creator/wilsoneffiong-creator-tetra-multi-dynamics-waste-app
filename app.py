@@ -30,8 +30,8 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-@app.before_first_request
-def create_tables():
+# FIX V4.8: Flask 3.x safe - create tables on startup
+with app.app_context():
     db.create_all()
 
 @app.route('/')
