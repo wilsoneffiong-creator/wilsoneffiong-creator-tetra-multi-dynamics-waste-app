@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+from datetime import datetime
 import os
 
 app = Flask(__name__)
@@ -15,12 +16,20 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
+    bookings = db.relationship('Booking', backref='owner', lazy=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+class Booking(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    address = db.Column(db.String(200), nullable=False)
+    status = db.Column(db.String(20), default='Pending')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 def login_required(f):
     @wraps(f)
@@ -30,8 +39,9 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# FIX V4.8: Flask 3.x safe - create tables on startup
+# V5.1 FIX: Drop + Create all tables every boot on Render
 with app.app_context():
+    db.drop_all() 
     db.create_all()
 
 @app.route('/')
@@ -74,14 +84,34 @@ def dashboard():
         session.clear()
         return redirect(url_for('login'))
     
-    stats = {'total': 0, 'medical': 0, 'household': 0, 'e_waste': 0, 'others': 0}
+    total = Booking.query.filter_by(user_id=user.id).count()
+    medical = Booking.query.filter_by(user_id=user.id, category='Medical').count()
+    household = Booking.query.filter_by(user_id=user.id, category='Household').count()
+    e_waste = Booking.query.filter_by(user_id=user.id, category='E-Waste').count()
+    others = Booking.query.filter_by(user_id=user.id, category='Others').count()
+    
+    stats = {'total': total, 'medical': medical, 'household': household, 'e_waste': e_waste, 'others': others}
     return render_template('dashboard.html', user=user, stats=stats)
+
+@app.route('/book', methods=['GET', 'POST'])
+@login_required
+def book():
+    if request.method == 'POST':
+        category = request.form['category']
+        address = request.form['address']
+        booking = Booking(user_id=session['user_id'], category=category, address=address)
+        db.session.add(booking)
+        db.session.commit()
+        flash('Booking submitted. We will contact you soon.', 'success')
+        return redirect(url_for('dashboard'))
+    return render_template('book.html')
 
 @app.route('/admin')
 @login_required
 def admin():
+    bookings = Booking.query.order_by(Booking.created_at.desc()).all()
     users = User.query.all()
-    return f"<h1>Admin</h1><p>Users in DB: {len(users)}</p><a href='/dashboard'>Back to Dashboard</a>"
+    return render_template('admin.html', bookings=bookings, users=users)
 
 @app.route('/logout')
 def logout():
