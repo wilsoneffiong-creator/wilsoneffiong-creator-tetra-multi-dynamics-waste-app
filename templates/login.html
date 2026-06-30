@@ -1,29 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-5">
-    <h2 class="mb-3 text-center">Admin Login</h2>
-    
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-
-    <form method="POST">
-      <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input type="text" name="email" class="form-control" required>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input type="password" name="password" class="form-control" required>
-      </div>
-      <button class="btn btn-success w-100">Login</button>
-    </form>
-    <p class="text-center mt-3">No account? <a href="{{ url_for('register') }}">Register here</a></p>
-  </div>
-</div>
+<h2>Admin Login</h2>
+<form method="POST">
+  <label>Email</label>
+  <input type="email" name="email" value="admin@tetra.com" required>
+  <label>Password</label>
+  <input type="password" name="password" value="admin123" required>
+  <button type="submit">Login</button>
+</form>
 {% endblock %}
