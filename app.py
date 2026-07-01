@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from datetime import datetime
+from datetime import datetime, date
 import os
 
 app = Flask(__name__)
@@ -16,19 +16,22 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
-    is_admin = db.Column(db.Boolean, default=False) # V5.3: Admin flag
+    is_admin = db.Column(db.Boolean, default=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+# V5.4: Booking with Date + Time
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100)) # V5.3: Customer name, no user_id
-    phone = db.Column(db.String(20))
+    name = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
     category = db.Column(db.String(50), nullable=False)
     address = db.Column(db.String(200), nullable=False)
+    pickup_date = db.Column(db.String(20), nullable=False) # NEW V5.4
+    pickup_time = db.Column(db.String(20), nullable=False) # NEW V5.4
     status = db.Column(db.String(20), default='Pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -40,13 +43,13 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# V5.3: Create tables + 1 default admin
+# V5.4: Drop + Create + Default Admin
 with app.app_context():
     db.drop_all() 
     db.create_all()
     if not User.query.filter_by(email='admin@tetra.com').first():
         admin = User(email='admin@tetra.com', is_admin=True)
-        admin.set_password('admin123') # CHANGE THIS AFTER
+        admin.set_password('admin123') # CHANGE THIS AFTER GOING LIVE
         db.session.add(admin)
         db.session.commit()
 
@@ -54,23 +57,25 @@ with app.app_context():
 def index():
     return render_template('index.html')
 
-# V5.3: PUBLIC BOOKING - NO LOGIN
+# V5.4: PUBLIC BOOKING WITH DATE + TIME
 @app.route('/book', methods=['GET', 'POST'])
 def book():
+    today = date.today().isoformat() # V5.4: block past dates
     if request.method == 'POST':
         booking = Booking(
             name=request.form['name'],
             phone=request.form['phone'],
             category=request.form['category'],
-            address=request.form['address']
+            address=request.form['address'],
+            pickup_date=request.form['pickup_date'], # NEW
+            pickup_time=request.form['pickup_time']  # NEW
         )
         db.session.add(booking)
         db.session.commit()
-        flash('Booking received. We will contact you soon.', 'success')
+        flash(f"Booking received for {booking.pickup_date} {booking.pickup_time}", 'success')
         return redirect(url_for('index'))
-    return render_template('book.html')
+    return render_template('book.html', today=today)
 
-# V5.3: ADMIN LOGIN ONLY
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
@@ -81,7 +86,7 @@ def admin_login():
             session['admin_id'] = user.id
             return redirect(url_for('admin'))
         flash('Invalid admin credentials', 'danger')
-    return render_template('login.html') # Reuse login.html
+    return render_template('login.html')
 
 @app.route('/admin')
 @admin_required
