@@ -3,78 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TETRA Waste Disposal</title>
+    <title>{% block title %}TETRA Waste Disposal{% endblock %}</title>
     <style>
-        /* V5.8.2: Background + Solid Card Center + Fixed Navbar */
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background-image: url("{{ url_for('static', filename='bg-waste.jpg') }}"); /* Your 5-step circle */
-            background-size: cover;
+            background-image: url("{{ url_for('static', filename='bg-waste.jpg') }}");
+            background-size: contain; /* V5.8.3: Show entire image, no crop */
             background-position: center;
+            background-repeat: no-repeat; /* V5.8.3: Don't tile/repeat */
+            background-color: #f5f5f5; /* V5.8.3: Light grey fill for empty space */
             background-attachment: fixed;
-            background-repeat: no-repeat;
             min-height: 100vh;
         }
-        header {
-            text-align: center;
-            padding: 20px 10px 10px 10px;
-            color: #fff; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Readable on image */
+        .navbar {
+            background-color: #0d1b2a;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        header h1 { margin: 0; font-size: 1.8em; }
-        header p { margin: 5px 0 0 0; font-size: 1em; }
-        
-        nav {
-            background-color: rgba(51, 51, 51, 0.9); /* Dark nav with slight see-through */
-            color: white;
-            padding: 1em;
-            text-align: center;
-        }
-        nav a {
-            color: white;
-            margin: 0 15px;
+        .navbar a {
+            color: #ffffff;
             text-decoration: none;
             font-weight: bold;
+            font-size: 16px;
         }
-        nav a:hover { text-decoration: underline; }
-        
+        .navbar a:hover {
+            color: #1e90ff;
+        }
         .container {
-            background-color: #ffffff; /* Solid white = your card shows */
+            max-width: 800px;
+            margin: 40px auto;
             padding: 30px;
-            margin: 40px auto; /* Center */
+            background-color: rgba(255, 255, 255, 0.95); /* V5.8.3: Slightly less transparent */
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            max-width: 600px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        h1, h2 { margin-top: 0; color: #333; }
-        p { color: #444; line-height: 1.5; }
+        .container h1 {
+            margin-top: 0;
+        }
         .btn {
             display: inline-block;
-            background-color: #2e7d32;
+            padding: 10px 20px;
+            background-color: #1e90ff;
             color: white;
-            padding: 12px 24px;
-            border-radius: 6px;
             text-decoration: none;
+            border-radius: 6px;
             font-weight: bold;
-            width: 100%;
-            text-align: center;
-            box-sizing: border-box;
-            border: none;
-            cursor: pointer;
-            font-size: 1em;
         }
-        .btn:hover { background-color: #1b5e20; }
+        .btn:hover {
+            background-color: #0c78e0;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>TETRA MULTI-DYNAMIC COM</h1>
-        <p>WASTE DISPOSAL SYSTEM</p>
-    </header>
-
-    <nav>
-        <a href="{{ url_for('index') }}">Home</a>  <!-- V5.8.2 FIX: index not home -->
+    <nav class="navbar">
+        <a href="{{ url_for('home') }}">Home</a>
         <a href="{{ url_for('book') }}">Book Now</a>
         <a href="{{ url_for('admin') }}">Admin</a>
     </nav>
