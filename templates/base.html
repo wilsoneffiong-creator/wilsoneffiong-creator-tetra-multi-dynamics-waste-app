@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TETRA MULTI -DYNAMIC COM</title>
   <style>
+    html, body { 
+      height: 100%; /* V5.7.1 FIX: Body must be 100% height */
+      min-height: 100vh;
+    }
     body { 
       font-family: Arial, sans-serif; 
       margin: 0; 
@@ -19,7 +23,7 @@
     
     header { 
       padding: 30px 10px 20px; 
-      background: rgba(255, 255, 255, 0.95); /* V5.7: see-through white so bg shows */
+      background: rgba(255, 255, 255, 0.95);
       border-bottom: 3px solid #222; 
       backdrop-filter: blur(4px);
     }
@@ -41,10 +45,11 @@
       max-width: 900px; 
       margin: 20px auto; 
       padding: 20px; 
-      background: rgba(255, 255, 255, 0.96); /* V5.7: white card over image */
+      background: rgba(255, 255, 255, 0.96);
       border-radius: 12px; 
       text-align: left; 
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      min-height: 60vh; /* V5.7.1 FIX: Make sure card has height */
     }
     input, select, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
     button { background: #16a34a; color: #fff; border: none; cursor: pointer; font-size: 1rem; font-weight: bold; }
