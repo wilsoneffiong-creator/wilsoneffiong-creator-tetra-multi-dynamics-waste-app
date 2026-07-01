@@ -2,15 +2,37 @@
 {% block content %}
 <h2>Admin Dashboard</h2>
 <h3>Total Bookings: {{ total }} | Pending: {{ pending }}</h3>
+
 <table>
-  <tr><th>ID</th><th>Name</th><th>Phone</th><th>Category</th><th>Address</th><th>Status</th><th>Date</th></tr>
+  <tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Phone</th>
+    <th>Category</th>
+    <th>Pickup Date</th>
+    <th>Pickup Time</th>
+    <th>Address</th>
+    <th>Status</th>
+    <th>Booked On</th>
+  </tr>
   {% for b in bookings %}
   <tr>
-    <td>{{ b.id }}</td><td>{{ b.name }}</td><td>{{ b.phone }}</td>
-    <td>{{ b.category }}</td><td>{{ b.address }}</td><td>{{ b.status }}</td>
-    <td>{{ b.created_at.strftime('%Y-%m-%d') }}</td>
+    <td>{{ b.id }}</td>
+    <td>{{ b.name }}</td>
+    <td>{{ b.phone }}</td>
+    <td>{{ b.category }}</td>
+    <td>{{ b.pickup_date }}</td>
+    <td>{{ b.pickup_time }}</td>
+    <td>{{ b.address }}</td>
+    <td>{{ b.status }}</td>
+    <td>{{ b.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+  </tr>
+  {% else %}
+  <tr>
+    <td colspan="9" style="text-align:center;">No bookings yet</td>
   </tr>
   {% endfor %}
 </table>
-<p><a href="/admin/logout">Logout</a></p>
+
+<p style="margin-top: 20px;"><a href="/admin/logout">Logout</a></p>
 {% endblock %}
