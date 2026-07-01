@@ -9,10 +9,10 @@
             margin: 0;
             font-family: Arial, sans-serif;
             background-image: url("{{ url_for('static', filename='bg-waste.jpg') }}");
-            background-size: contain; /* V5.8.3: Show entire image, no crop */
+            background-size: 60%; /* V5.8.4: 60% = Smaller circle, no crop */
             background-position: center;
-            background-repeat: no-repeat; /* V5.8.3: Don't tile/repeat */
-            background-color: #f5f5f5; /* V5.8.3: Light grey fill for empty space */
+            background-repeat: no-repeat; /* V5.8.4: No tiling */
+            background-color: #f5f5f5; /* V5.8.4: Grey space around image */
             background-attachment: fixed;
             min-height: 100vh;
         }
@@ -37,7 +37,7 @@
             max-width: 800px;
             margin: 40px auto;
             padding: 30px;
-            background-color: rgba(255, 255, 255, 0.95); /* V5.8.3: Slightly less transparent */
+            background-color: rgba(255, 255, 255, 0.95);
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
