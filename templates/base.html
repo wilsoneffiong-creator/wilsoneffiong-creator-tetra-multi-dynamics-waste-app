@@ -2,64 +2,72 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}TETRA Waste Disposal{% endblock %}</title>
+    <title>{% block title %}TETRA Waste Pickup{% endblock %}</title>
     <style>
+        /* V5.8.8: Full circle visible - contain instead of cover */
         body {
             margin: 0;
             font-family: Arial, sans-serif;
             background-image: url("{{ url_for('static', filename='bg-waste.jpg') }}");
-            background-size: 60%; /* V5.8.4: 60% = Smaller circle, no crop */
+            background-size: contain; /* V5.8.8: Shows entire 5-step circle */
             background-position: center;
-            background-repeat: no-repeat; /* V5.8.4: No tiling */
-            background-color: #f5f5f5; /* V5.8.4: Grey space around image */
+            background-repeat: no-repeat; /* V5.8.8: No tiling */
+            background-color: #f5f5f5; /* V5.8.8: Light grey fills empty space */
             background-attachment: fixed;
             min-height: 100vh;
         }
-        .navbar {
-            background-color: #0d1b2a;
-            padding: 12px 20px;
-            display: flex;
-            justify-content: center;
-            gap: 25px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        nav {
+            background-color: #222;
+            padding: 10px;
+            text-align: center;
         }
-        .navbar a {
-            color: #ffffff;
+        nav a {
+            color: white;
+            margin: 0 15px;
             text-decoration: none;
             font-weight: bold;
-            font-size: 16px;
         }
-        .navbar a:hover {
-            color: #1e90ff;
+        nav a:hover {
+            text-decoration: underline;
         }
         .container {
-            max-width: 800px;
+            max-width: 600px;
             margin: 40px auto;
-            padding: 30px;
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        .container h1 {
-            margin-top: 0;
+            background: rgba(255,255,255,0.95); /* V5.8.8: White box over circle */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #1e90ff;
+            background-color: #007bff;
             color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
             text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
+            display: inline-block;
         }
         .btn:hover {
-            background-color: #0c78e0;
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
+    <nav>
         <a href="{{ url_for('home') }}">Home</a>
         <a href="{{ url_for('book') }}">Book Now</a>
         <a href="{{ url_for('admin') }}">Admin</a>
