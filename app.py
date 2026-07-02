@@ -1,105 +1,92 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
+from datetime import date
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from datetime import datetime, date
-import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///site.db')
+app.config['SECRET_KEY'] = 'tetra_secret_key_change_me'  # change this later
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tetra.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(200), nullable=False)
-    is_admin = db.Column(db.Boolean, default=False)
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-# V5.4: Booking with Date + Time
+# ===== MODELS =====
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20), nullable=False)
     category = db.Column(db.String(50), nullable=False)
     address = db.Column(db.String(200), nullable=False)
-    pickup_date = db.Column(db.String(20), nullable=False) # NEW V5.4
-    pickup_time = db.Column(db.String(20), nullable=False) # NEW V5.4
-    status = db.Column(db.String(20), default='Pending')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    pickup_date = db.Column(db.String(20), nullable=False)
 
-def admin_required(f):
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+
+# ===== LOGIN REQUIRED DECORATOR =====
+def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'admin_id' not in session:
-            return redirect(url_for('admin_login'))
+            flash('Login required', 'warning')
+            return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
 
-# V5.4: Drop + Create + Default Admin
-with app.app_context():
-    db.drop_all() 
-    db.create_all()
-    if not User.query.filter_by(email='admin@tetra.com').first():
-        admin = User(email='admin@tetra.com', is_admin=True)
-        admin.set_password('admin123') # CHANGE THIS AFTER GOING LIVE
-        db.session.add(admin)
-        db.session.commit()
-
+# ===== ROUTES =====
 @app.route('/')
-def index():
+def home():   # <-- FIXED: was 'index'. Now matches url_for('home')
     return render_template('index.html')
 
 # V5.4: PUBLIC BOOKING WITH DATE + TIME
 @app.route('/book', methods=['GET', 'POST'])
 def book():
-    today = date.today().isoformat() # V5.4: block past dates
+    today = date.today().isoformat() # V5.4: block past date
     if request.method == 'POST':
         booking = Booking(
             name=request.form['name'],
             phone=request.form['phone'],
             category=request.form['category'],
             address=request.form['address'],
-            pickup_date=request.form['pickup_date'], # NEW
-            pickup_time=request.form['pickup_time']  # NEW
+            pickup_date=request.form['pickup_date']
         )
         db.session.add(booking)
         db.session.commit()
-        flash(f"Booking received for {booking.pickup_date} {booking.pickup_time}", 'success')
-        return redirect(url_for('index'))
+        flash('Booking received! We will call you soon.', 'success')
+        return redirect(url_for('home')) # <-- now works
     return render_template('book.html', today=today)
 
-@app.route('/admin/login', methods=['GET', 'POST'])
-def admin_login():
+@app.route('/login', methods=['GET', 'POST'])
+def login():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        user = User.query.filter_by(email=email, is_admin=True).first()
-        if user and user.check_password(password):
-            session['admin_id'] = user.id
-            return redirect(url_for('admin'))
-        flash('Invalid admin credentials', 'danger')
+        admin = Admin.query.filter_by(username=request.form['username']).first()
+        if admin and check_password_hash(admin.password, request.form['password']):
+            session['admin_id'] = admin.id
+            return redirect(url_for('dashboard'))
+        flash('Invalid username or password', 'danger')
     return render_template('login.html')
 
-@app.route('/admin')
-@admin_required
-def admin():
-    bookings = Booking.query.order_by(Booking.created_at.desc()).all()
-    total_bookings = len(bookings)
-    pending = Booking.query.filter_by(status='Pending').count()
-    return render_template('admin.html', bookings=bookings, total=total_bookings, pending=pending)
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    bookings = Booking.query.order_by(Booking.id.desc()).all()
+    return render_template('dashboard.html', bookings=bookings)
 
-@app.route('/admin/logout')
-def admin_logout():
-    session.clear()
-    return redirect(url_for('index'))
+@app.route('/logout')
+def logout():
+    session.pop('admin_id', None)
+    return redirect(url_for('home'))
+
+# ===== FIRST RUN: CREATE ADMIN + DB =====
+with app.app_context():
+    db.create_all()
+    if not Admin.query.first():
+        admin = Admin(username='admin', password=generate_password_hash('admin123'))
+        db.session.add(admin)
+        db.session.commit()
+        print('Default admin created: admin / admin123')
 
 if __name__ == '__main__':
     app.run(debug=True)
