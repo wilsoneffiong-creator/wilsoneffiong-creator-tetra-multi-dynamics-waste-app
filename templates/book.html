@@ -1,37 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Book Waste Pickup</h2>
+<h2>Book a Pickup</h2>
 <form method="POST">
-  <label>Full Name</label>
-  <input type="text" name="name" placeholder="John Doe" required>
-
-  <label>Phone Number</label>
-  <input type="tel" name="phone" placeholder="0803..." required>
-
-  <label>Category</label>
+  <label>Name:</label><br><input name="name" required><br><br>
+  <label>Phone:</label><br><input name="phone" required><br><br>
+  <label>Category:</label><br>
   <select name="category" required>
-    <option value="">Select Category</option>
     <option>Medical</option>
-    <option>Household</option>
-    <option>E-Waste</option>
-    <option>Others</option>
-  </select>
-
-  <label>Pickup Address</label>
-  <input type="text" name="address" placeholder="House 12, Wuse 2, Abuja" required>
-  
-  <!-- V5.4 NEW: Date + Time -->
-  <label>Preferred Date</label>
-  <input type="date" name="pickup_date" required min="{{ today }}">
-  
-  <label>Preferred Time</label>
+    <option>Household</option><option>E-Waste</option><option>Others</option>
+  </select><br><br>
+  <label>Address:</label><br><textarea name="address" required></textarea><br><br>
+  <label>Pickup Date:</label><br><input type="date" name="pickup_date" min="{{ today }}" required><br><br>
+  <label>Pickup Time:</label><br>
   <select name="pickup_time" required>
-    <option value="">Select Time Slot</option>
-    <option>8:00 AM - 12:00 PM</option>
-    <option>12:00 PM - 4:00 PM</option>
-    <option>4:00 PM - 6:00 PM</option>
-  </select>
-
-  <button type="submit">Submit Booking</button>
+    <option>8:00 AM - 10:00 AM</option><option>10:00 AM - 12:00 PM</option>
+    <option>12:00 PM - 2:00 PM</option><option>2:00 PM - 4:00 PM</option>
+  </select><br><br>
+  <button class="btn" type="submit">Submit Booking</button>
 </form>
 {% endblock %}

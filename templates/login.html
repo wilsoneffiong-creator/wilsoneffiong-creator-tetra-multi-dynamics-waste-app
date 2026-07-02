@@ -2,10 +2,8 @@
 {% block content %}
 <h2>Admin Login</h2>
 <form method="POST">
-  <label>Email</label>
-  <input type="email" name="email" value="admin@tetra.com" required>
-  <label>Password</label>
-  <input type="password" name="password" value="admin123" required>
-  <button type="submit">Login</button>
+  <label>Email:</label><br><input type="email" name="email" required><br><br>
+  <label>Password:</label><br><input type="password" name="password" required><br><br>
+  <button class="btn" type="submit">Login</button>
 </form>
 {% endblock %}
